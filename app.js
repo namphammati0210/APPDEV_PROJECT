@@ -1,15 +1,18 @@
-var createError = require("http-errors");
-var express = require("express");
-var path = require("path");
-var cookieParser = require("cookie-parser");
-var logger = require("morgan");
+const createError = require("http-errors");
+const express = require("express");
+const path = require("path");
+const cookieParser = require("cookie-parser");
+const logger = require("morgan");
 const database = require("./database/models/index");
+const session = require("express-session");
+const flash = require("connect-flash");
 
-var indexRouter = require("./routes/index");
-var usersRouter = require("./routes/users");
-var adminRouter = require("./routes/admin");
+const indexRouter = require("./routes/index");
+const adminRouter = require("./routes/admin");
+const trainingStaffRouter = require("./routes/trainingStaff");
+require("dotenv").config();
 
-var app = express();
+const app = express();
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -21,9 +24,22 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
+// creating 24 hours from milliseconds
+const oneDay = 1000 * 60 * 60 * 24; // milisecond
+app.use(
+  session({
+    secret: "keyboard cat",
+    resave: false,
+    saveUninitialized: true,
+    cookie: { maxAge: oneDay },
+  })
+);
+
+app.use(flash());
+
 app.use("/", indexRouter);
-app.use("/users", usersRouter);
 app.use("/admin", adminRouter);
+app.use("/staff", trainingStaffRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
